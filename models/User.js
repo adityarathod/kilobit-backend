@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const Schema = mongoose.Schema
 
-const ENV = process.env.NODE_ENV;
+const ENV = process.env.NODE_ENV
 const configVars = require('../server.config')[ENV]
 
 const userSchema = new Schema({
@@ -16,7 +16,10 @@ const userSchema = new Schema({
     botUser: { type: Boolean, required: true },
     lastLogin: { type: Date, required: true },
     userLevel: { type: String, required: true },
-    lastSeenClient: { type: String, required: true, default: 'kilobit web' }
+    lastSeenClient: { type: String, required: true, default: 'kilobit web' },
+    following: [
+        { type: Schema.Types.ObjectId, ref: 'User' }
+    ]
 })
 
 userSchema.pre('save', function (next) {
