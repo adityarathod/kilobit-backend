@@ -1,17 +1,29 @@
 require('dotenv').config()
+const ENV = process.env.NODE_ENV
+const configVars = require('./server.config')[ENV]
+
 const express = require('express')
-const mongoose = require('mongoose')
+const logger = require('morgan')
+const bodyParser = require('body-parser')
+
+
 const app = express()
-const User = require('./models/User')
-const port = process.env.PORT
+const router = express.Router()
 
-mongoose.connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_SERVER}/${process.env.MONGO_NAMESPACE}?retryWrites=true&w=majority`,
-    { useNewUrlParser: true }
-).then(() => console.log('db connected.'))
+// load body-parser middleware
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
 
-app.use()
+// logger for dev use
+if (ENV !== 'production') {
+    app.use(logger('dev'))
+}
 
-app.get('/', (req, res) => res.send('Hello World!'))
+const routes = require('./routes')
+app.use('/api/v1', routes(router))
 
-app.listen(port, () => console.log(`Listening on port ${port}`))
+app.listen(configVars.port, () => console.log(`Listening on port ${configVars.port}`))
+
+module.exports = app
