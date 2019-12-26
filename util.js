@@ -19,7 +19,14 @@ util.validateToken = (req, res, next) => {
             req.decoded = result
             next()
         } catch (e) {
-            throw new Error(e)
+            if (e instanceof jwt.JsonWebTokenError) { 
+                res.status(401).send({
+                    error: 'Authentication error - tampered/invalid token',
+                    status: 401
+                })
+            } else {
+                throw new Error(e)
+            }
         }
     }
 }
