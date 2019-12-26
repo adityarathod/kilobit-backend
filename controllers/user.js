@@ -2,26 +2,11 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const { UserNotFoundError, IncompleteRequestError, AuthError } = require('../errors')
 
-const connectionString = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PWD}@${process.env.MONGO_SERVER}/${process.env.MONGO_NAMESPACE}?retryWrites=true&w=majority`
-
-class UserNotFoundError extends Error {
-    constructor(message) {
-        super(message)
-    }
-}
-
-class AuthError extends Error {
-    constructor(message) {
-        super(message)
-    }
-}
-
-class IncompleteRequestError extends Error {
-    constructor(message) {
-        super(message)
-    }
-}
+const ENV = process.env.NODE_ENV
+const configVars = require('../server.config')[ENV]
+const connectionString = configVars.mongoConnectionString
 
 var controller = {}
 
@@ -42,16 +27,16 @@ controller.add = async (req, res) => {
             botUser: false,
             lastSeenClient: 'kilobit web',
             lastLogin: new Date(),
-            userLevel: 'normal'
+            userLevel: 'admin'
         })
         await newUser.save()
         result.result = newUser
     } catch (err) {
-        error = err
+        error = err.toString()
         if (err instanceof IncompleteRequestError) status = 400
         else if (err instanceof mongoose.mongo.MongoError) {
             status = 400
-            if (err.code === 11000) { 
+            if (err.code === 11000) {
                 status = 409
                 error = 'Username already exists'
             }
