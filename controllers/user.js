@@ -77,7 +77,7 @@ controller.login = async (req, res) => {
         usr.lastLogin = new Date()
         await usr.save()
     } catch (err) {
-        error = err
+        error = err.toString()
         if (err instanceof UserNotFoundError) status = 404
         else if (err instanceof AuthError) status = 401
         else if (err instanceof IncompleteRequestError) status = 400
@@ -90,6 +90,30 @@ controller.login = async (req, res) => {
         if (user) result.result = user
         if (error) result.error = error
         if (token) result.token = token
+        res.status(status).send(result)
+    }
+}
+
+controller.getAll = async (req, res) => {
+    let result = {}, status = 200
+    var error = null
+    try {
+        const payload = req.decoded
+        if (!payload || payload.userLevel != 'admin') throw new AuthError('Insufficient privileges')
+        await mongoose.connect(connectionString, { useNewUrlParser: true })
+        const users = await User.find({})
+        if (!users) throw new UserNotFoundError()
+        result.result = users
+    } catch (err) {
+        error = err.toString()
+        if (err instanceof AuthError) status = 401
+        else {
+            status = 500
+            error = null
+        }
+    } finally { 
+        result.status = status
+        if (error) result.error = error
         res.status(status).send(result)
     }
 }
