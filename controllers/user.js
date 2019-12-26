@@ -49,11 +49,19 @@ controller.add = async (req, res) => {
     } catch (err) {
         error = err
         if (err instanceof IncompleteRequestError) status = 400
+        else if (err instanceof mongoose.mongo.MongoError) {
+            status = 400
+            if (err.code === 11000) { 
+                status = 409
+                error = 'Username already exists'
+            }
+        }
         else {
             status = 500
             error = null
         }
     } finally {
+        result.status = status
         if (error) result.error = error
         res.status(status).send(result)
     }
@@ -111,7 +119,7 @@ controller.getAll = async (req, res) => {
             status = 500
             error = null
         }
-    } finally { 
+    } finally {
         result.status = status
         if (error) result.error = error
         res.status(status).send(result)
