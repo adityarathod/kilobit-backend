@@ -23,52 +23,46 @@ class IncompleteRequestError extends Error {
     }
 }
 
+var controller = {}
 
-
-var userController = {}
-
-userController.add = (req, res) => {
-    mongoose.connect(connectionString, { useNewUrlParser: true }, (err) => {
-        let resObj = {}
-        let status = 201
-        if (!err) {
-            const { displayName, username, password, utcOffset } = req.body
-            const newUser = new User({
-                displayName,
-                username,
-                password,
-                utcOffset,
-                verified: false,
-                numFollowers: 0,
-                botUser: false,
-                lastSeenClient: 'kilobit web',
-                lastLogin: new Date(),
-                userLevel: 'normal'
-            })
-            newUser.save((err, usr) => {
-                if (!err) {
-                    resObj.status = status
-                    resObj.result = usr
-                } else {
-                    status = 500
-                    resObj.status = status
-                    resObj.error = err
-                }
-                res.status(status).send(resObj)
-            })
-        } else {
+controller.add = async (req, res) => {
+    const { displayName, username, password, utcOffset } = req.body
+    let result = {}, status = 201
+    var error = null
+    try {
+        if (!displayName || !username || !password || !utcOffset) throw new IncompleteRequestError('Not all parameters passed')
+        await mongoose.connect(connectionString, { useNewUrlParser: true })
+        const newUser = new User({
+            displayName,
+            username,
+            password,
+            utcOffset,
+            verified: false,
+            numFollowers: 0,
+            botUser: false,
+            lastSeenClient: 'kilobit web',
+            lastLogin: new Date(),
+            userLevel: 'normal'
+        })
+        await newUser.save()
+        result.result = newUser
+    } catch (err) {
+        error = err
+        if (err instanceof IncompleteRequestError) status = 400
+        else {
             status = 500
-            resObj.status = status
-            resObj.error = err
-            res.status(status).send(resObj)
+            error = null
         }
-    })
+    } finally {
+        if (error) result.error = error
+        res.status(status).send(result)
+    }
 }
 
-userController.login = async (req, res) => {
+controller.login = async (req, res) => {
     const { username, password, client } = req.body
     let result = {}, status = 200
-    var error = null, token = null, user = null
+    var token = null, user = null, error = null
     try {
         if (!username || !password || !client) throw new IncompleteRequestError('Not all parameters passed')
         await mongoose.connect(connectionString, { useNewUrlParser: true })
@@ -83,19 +77,21 @@ userController.login = async (req, res) => {
         usr.lastLogin = new Date()
         await usr.save()
     } catch (err) {
-        error = err.toString()
-        if (err instanceof mongoose.mongo.MongoError) status = 500
-        else if (err instanceof UserNotFoundError) status = 404
+        error = err
+        if (err instanceof UserNotFoundError) status = 404
         else if (err instanceof AuthError) status = 401
         else if (err instanceof IncompleteRequestError) status = 400
-        else status = 500
+        else {
+            status = 500
+            error = null
+        }
     } finally {
         result.status = status
-        if (error) result.error = error
         if (user) result.result = user
+        if (error) result.error = error
         if (token) result.token = token
         res.status(status).send(result)
     }
 }
 
-module.exports = userController
+module.exports = controller
