@@ -58,4 +58,37 @@ controller.add = async (req, res) => {
     }
 }
 
+controller.getByUser = async (req, res) => {
+    const { page } = req.body
+    const username = req.params.user
+    let result = {}, status = 200
+    var error = null
+    try {
+        if (!username || !page) throw new IncompleteRequestError('Not all required parameters passed')
+        await mongoose.connect(connectionString, { useNewUrlParser: true })
+        const curUser = await User.findOne({ username })
+        if (!curUser) throw new UserNotFoundError('User not found')
+        var userBits = await Bit.paginate(
+            { user: curUser._id },
+            { sort: { creationDate: -1 }, limit: 10, page }
+        )
+        // var userBits = await Bit.find({ user: curUser._id })
+        if (!userBits || userBits.docs.length === 0) throw new UserNotFoundError('No bits found')
+        result.result = userBits
+    } catch (err) {
+        error = err.toString()
+        if (err instanceof IncompleteRequestError) status = 400
+        else if (err instanceof UserNotFoundError) status = 404
+        else {
+            console.log(error)
+            status = 500
+            error = null
+        }
+    } finally {
+        result.status = status
+        if (error) result.error = error
+        res.status(status).send(result)
+    }
+}
+
 module.exports = controller

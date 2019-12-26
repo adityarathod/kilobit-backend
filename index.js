@@ -5,10 +5,15 @@ const configVars = require('./server.config')[ENV]
 const express = require('express')
 const logger = require('morgan')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 
 
 const app = express()
 const router = express.Router()
+
+// load cors middleware
+// TODO: set sensible settings for this middleware
+app.use(cors())
 
 // load body-parser middleware
 app.use(bodyParser.json())
@@ -27,7 +32,7 @@ if (ENV !== 'production') {
 }
 
 const routes = require('./routes')
-app.use('/api/v1', routes(router))
+app.use('/', routes(router))
 
 app.listen(configVars.port, () => console.log(`Listening on port ${configVars.port}`))
 

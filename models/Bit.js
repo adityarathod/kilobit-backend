@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2')
 const Schema = mongoose.Schema
 
 const bitSchema = new Schema({
@@ -29,11 +30,7 @@ const bitSchema = new Schema({
 
 })
 
-// TODO: recompute .replyCount and .likeCount
-bitSchema.pre('save', function (next) { 
-    const curBit = this
-    next()
-})
+bitSchema.plugin(mongoosePaginate)
 
 var Bit = mongoose.model('Bit', bitSchema)
 
