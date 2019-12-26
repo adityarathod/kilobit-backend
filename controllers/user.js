@@ -70,7 +70,7 @@ controller.login = async (req, res) => {
         if (!usr) throw new UserNotFoundError('User not found')
         const match = await bcrypt.compare(password, usr.password)
         if (!match) throw new AuthError('Authentication failure')
-        const payload = { username: usr.username }, options = { expiresIn: '2d', issuer: 'https://kilobit.now.sh' }, secret = process.env.JWT_SECRET
+        const payload = { username: usr.username, userLevel: usr.userLevel }, options = { expiresIn: '2d', issuer: 'https://kilobit.now.sh' }, secret = process.env.JWT_SECRET
         token = jwt.sign(payload, secret, options)
         user = usr
         usr.lastSeenClient = client
