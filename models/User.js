@@ -15,6 +15,7 @@ const userSchema = new Schema({
     utcOffset: { type: Number, required: true },
     botUser: { type: Boolean, required: true },
     lastLogin: { type: Date, required: true },
+    userLevel: { type: String, required: true },
     lastSeenClient: { type: String, required: true, default: 'kilobit web' }
 })
 

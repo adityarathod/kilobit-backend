@@ -42,7 +42,8 @@ userController.add = (req, res) => {
                 numFollowers: 0,
                 botUser: false,
                 lastSeenClient: 'kilobit web',
-                lastLogin: new Date()
+                lastLogin: new Date(),
+                userLevel: 'normal'
             })
             newUser.save((err, usr) => {
                 if (!err) {
