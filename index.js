@@ -12,6 +12,11 @@ const router = express.Router()
 
 // load body-parser middleware
 app.use(bodyParser.json())
+app.use(function (err, req, res, next) {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        res.status(400).send({ status: 400, error: 'Error: Bad request body' })
+    } else next()
+})
 app.use(bodyParser.urlencoded({
     extended: true
 }))
