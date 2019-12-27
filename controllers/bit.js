@@ -3,10 +3,6 @@ const Bit = require('../models/Bit')
 const User = require('../models/User')
 const { UserNotFoundError, IncompleteRequestError, AuthError } = require('../errors')
 
-const ENV = process.env.NODE_ENV
-const configVars = require('../server.config')[ENV]
-const connectionString = configVars.mongoConnectionString
-
 var controller = {}
 
 controller.add = async (req, res) => {
@@ -16,7 +12,6 @@ controller.add = async (req, res) => {
     const isReply = (replyTo !== undefined)
     try {
         if (!text) throw new IncompleteRequestError('Not all required parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const payload = req.decoded
         if (!payload || !payload.username) throw new AuthError('Insufficient privileges')
         const username = payload.username
@@ -65,7 +60,6 @@ controller.getByUser = async (req, res) => {
     var error = null
     try {
         if (!username || !page) throw new IncompleteRequestError('Not all required parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const curUser = await User.findOne({ username })
         if (!curUser) throw new UserNotFoundError('User not found')
         var userBits = await Bit.paginate(
@@ -97,7 +91,6 @@ controller.getBitDetails = async (req, res) => {
     var error = null
     try {
         if (!bitID) throw new IncompleteRequestError('Not all required parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const foundBit = await Bit
             .findById(bitID)
             .populate({

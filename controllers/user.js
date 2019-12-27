@@ -4,10 +4,6 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const { UserNotFoundError, IncompleteRequestError, AuthError } = require('../errors')
 
-const ENV = process.env.NODE_ENV
-const configVars = require('../server.config')[ENV]
-const connectionString = configVars.mongoConnectionString
-
 var controller = {}
 
 controller.add = async (req, res) => {
@@ -16,7 +12,6 @@ controller.add = async (req, res) => {
     var error = null
     try {
         if (!displayName || !username || !password || !utcOffset) throw new IncompleteRequestError('Not all parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const newUser = new User({
             displayName,
             username,
@@ -58,7 +53,6 @@ controller.login = async (req, res) => {
     var token = null, user = null, error = null
     try {
         if (!username || !password || !client) throw new IncompleteRequestError('Not all parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const usr = await User.findOne({ username })
         if (!usr) throw new UserNotFoundError('User not found')
         const match = await bcrypt.compare(password, usr.password)
@@ -93,7 +87,6 @@ controller.getAll = async (req, res) => {
     try {
         const payload = req.decoded
         if (!payload || payload.userLevel != 'admin') throw new AuthError('Insufficient privileges')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const users = await User.find({})
         if (!users) throw new UserNotFoundError()
         result.result = users
@@ -117,7 +110,6 @@ controller.info = async (req, res) => {
     var error = null
     try {
         if (!username) throw new IncompleteRequestError('Not all parameters passed')
-        await mongoose.connect(connectionString, { useNewUrlParser: true })
         const foundUser = await User.findOne({ username })
         if (!foundUser) throw new UserNotFoundError('User not found')
         result.result = {

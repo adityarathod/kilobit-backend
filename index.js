@@ -7,6 +7,9 @@ const logger = require('morgan')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 
+const mongoose = require('mongoose')
+const connectionString = configVars.mongoConnectionString
+
 
 const app = express()
 const router = express.Router()
@@ -31,6 +34,7 @@ if (ENV !== 'production') {
     app.use(logger('dev'))
 }
 
+mongoose.connect(connectionString, { useNewUrlParser: true })
 const routes = require('./routes')
 app.use('/', routes(router))
 
