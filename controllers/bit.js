@@ -91,4 +91,39 @@ controller.getByUser = async (req, res) => {
     }
 }
 
+controller.getBitDetails = async (req, res) => {
+    const { id: bitID } = req.params
+    let result = {}, status = 200
+    var error = null
+    try {
+        if (!bitID) throw new IncompleteRequestError('Not all required parameters passed')
+        await mongoose.connect(connectionString, { useNewUrlParser: true })
+        const foundBit = await Bit
+            .findById(bitID)
+            .populate({
+                path: 'replies',
+                populate: {
+                    path: 'user',
+                    select: '-password -utcOffset -lastLogin -userLevel -lastSeenClient -following -__v -_id',
+                }
+            })
+            .populate('user', '-password -utcOffset -lastLogin -userLevel -lastSeenClient -following -__v -_id')
+        if (!foundBit) throw new UserNotFoundError('Bit not found')
+        result.result = foundBit
+    } catch (err) {
+        error = err.toString()
+        if (err instanceof IncompleteRequestError) status = 400
+        else if (err instanceof UserNotFoundError) status = 404
+        else {
+            console.log(error)
+            status = 500
+            error = null
+        }
+    } finally {
+        result.status = status
+        if (error) result.error = error
+        res.status(status).send(result)
+    }
+}
+
 module.exports = controller
