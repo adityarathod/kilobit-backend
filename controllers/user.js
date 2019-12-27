@@ -111,4 +111,35 @@ controller.getAll = async (req, res) => {
     }
 }
 
+controller.info = async (req, res) => {
+    const { username } = req.body
+    let result = {}, status = 200
+    var error = null
+    try {
+        if (!username) throw new IncompleteRequestError('Not all parameters passed')
+        await mongoose.connect(connectionString, { useNewUrlParser: true })
+        const foundUser = await User.findOne({ username })
+        if (!foundUser) throw new UserNotFoundError('User not found')
+        result.result = {
+            displayName: foundUser.displayName,
+            username: foundUser.username,
+            verified: foundUser.verified,
+            numFollowers: foundUser.numFollowers,
+            botUser: foundUser.botUser
+        }
+    } catch (err) {
+        error = err.toString()
+        if (err instanceof UserNotFoundError) status = 404
+        else if (err instanceof IncompleteRequestError) status = 400
+        else {
+            status = 500
+            error = null
+        }
+    } finally { 
+        result.status = status
+        if (error) result.error = error
+        res.status(status).send(result)
+    }
+}
+
 module.exports = controller
