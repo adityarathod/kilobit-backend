@@ -26,6 +26,17 @@ const bitSchema = new Schema({
     likeCount: { type: Number, required: true, default: 0 },
     likes: [
         { type: Schema.Types.ObjectId, ref: 'User' }
+    ],
+
+    tags: [
+        { type: String }
+    ],
+
+    mentions: [
+        {
+            mentionText: String,
+            reference: { type: Schema.Types.ObjectId, ref: 'User' }
+        }
     ]
 
 })

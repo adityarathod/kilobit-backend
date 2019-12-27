@@ -19,9 +19,20 @@ controller.add = async (req, res) => {
         if (!curUser) throw new UserNotFoundError('User not found')
         var repliedBit = await Bit.findById(replyTo)
         if (isReply && !repliedBit) throw new UserNotFoundError('Source bit not found')
+        let mentions = []
+        var potentialMentions = text.match(/@\w+/g)
+        for (var i = 0; i < potentialMentions.length; i++) {
+            const username = potentialMentions[i].replace('@', '').trim()
+            var user = await User.findOne({ username })
+            if (!user) continue
+            mentions.push({ mentionText: potentialMentions[i].trim(), refersTo: user._id })
+        }
+        const tags = text.match(/#\w+/g).map(tag => tag.replace('#', ''))
         const newBit = new Bit({
             text,
             isReply,
+            mentions,
+            tags,
             user: curUser._id,
             creationDate: new Date(),
             replyTo: isReply ? repliedBit._id : null,
