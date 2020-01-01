@@ -125,6 +125,10 @@ controller.getBitDetails = async (req, res) => {
         error = err.toString()
         if (err instanceof IncompleteRequestError) status = 400
         else if (err instanceof UserNotFoundError) status = 404
+        else if (err instanceof mongoose.Error.CastError) {
+            status = 400
+            error = 'Invalid bit ID'
+        }
         else {
             console.log(error)
             status = 500
