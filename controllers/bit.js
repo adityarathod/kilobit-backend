@@ -87,6 +87,7 @@ controller.getByUser = async (req, res) => {
         // var userBits = await Bit.find({ user: curUser._id })
         if (!userBits || userBits.docs.length === 0) throw new UserNotFoundError('No bits found')
         result.result = userBits
+        result.result.username = username
     } catch (err) {
         error = err.toString()
         if (err instanceof IncompleteRequestError) status = 400
