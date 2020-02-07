@@ -31,7 +31,7 @@ controller.add = async (req, res) => {
         }
         const potentialTags = text.match(/#\w+/g)
         var tags = []
-        if (potentialTags) { 
+        if (potentialTags) {
             tags = potentialTags
         }
         // const tags = text.match(/#\w+/g).map(tag => tag.replace('#', ''))
@@ -78,7 +78,7 @@ controller.getByUser = async (req, res) => {
     var error = null
     try {
         if (!username || !page) throw new IncompleteRequestError('Not all required parameters passed')
-        const curUser = await User.findOne({ username })
+        const curUser = await User.findOne({ username }).cache(300)
         if (!curUser) throw new UserNotFoundError('User not found')
         var userBits = await Bit.paginate(
             { user: curUser._id },

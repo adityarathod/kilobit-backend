@@ -8,6 +8,8 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 
 const mongoose = require('mongoose')
+const cachegoose = require('cachegoose')
+cachegoose(mongoose, {})
 const connectionString = configVars.mongoConnectionString
 
 
@@ -36,7 +38,7 @@ if (ENV !== 'production') {
 
 mongoose.connect(connectionString, { useNewUrlParser: true })
 const routes = require('./routes')
-app.use('/', routes(router))
+app.use('/v1', routes(router))
 
 app.listen(configVars.port, () => console.log(`Listening on port ${configVars.port}`))
 
