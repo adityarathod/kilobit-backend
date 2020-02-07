@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const Bit = require('../models/Bit')
 const { UserNotFoundError, IncompleteRequestError, AuthError } = require('../errors')
 
 var controller = {}
@@ -127,7 +128,53 @@ controller.info = async (req, res) => {
             status = 500
             error = null
         }
-    } finally { 
+    } finally {
+        result.status = status
+        if (error) result.error = error
+        res.status(status).send(result)
+    }
+}
+
+controller.feed = async (req, res) => {
+    const { username } = req.params
+    let result = {}, status = 200
+    var error = null
+    try {
+        if (!username) throw new IncompleteRequestError('Not all parameters passed')
+        const foundUser = await User.findOne({ username }).cache(120)
+        if (!foundUser) throw new UserNotFoundError('User not found')
+        if (foundUser.following.length === 0) {
+            result.result = []
+        } else {
+            const userList = foundUser.following.map(id => {
+                return { user: id }
+            })
+            var bits = await Bit.find({ $or: userList }).populate('user', '-password -utcOffset -lastLogin -userLevel -lastSeenClient -following -__v -_id')
+            result.result = bits.sort((a, b) => {
+                const postScore = post => {
+                    const postDelta = (new Date() - post.creationDate) / 1e6
+                    var recencyScore = (100 / postDelta) || 100
+                    var wasMentioned = 0
+                    post.mentions.forEach(mention => {
+                        if (mention.mentionText === `@${username}`) {
+                            wasMentioned = 1
+                        }
+                    })
+                    var totalScore = recencyScore + 0.1 * wasMentioned
+                    return totalScore
+                }
+                return postScore(b) - postScore(a)
+            })
+        }
+    } catch (err) {
+        error = err.toString()
+        if (err instanceof UserNotFoundError) status = 404
+        else if (err instanceof IncompleteRequestError) status = 400
+        else {
+            status = 500
+            error = null
+        }
+    } finally {
         result.status = status
         if (error) result.error = error
         res.status(status).send(result)

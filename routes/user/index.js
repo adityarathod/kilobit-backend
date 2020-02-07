@@ -9,6 +9,10 @@ module.exports = (router) => {
   router.route('/user/:username')
     .get(controller.info)
 
+  router.route('/user/:username/feed')
+  .get(util.validateToken, controller.feed)
+  // .get(controller.feed)
+
   router.route('/token')
     .post(controller.login)
 }
