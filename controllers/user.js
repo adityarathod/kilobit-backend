@@ -105,7 +105,7 @@ controller.getAll = async (req, res) => {
 }
 
 controller.info = async (req, res) => {
-    const { username } = req.body
+    const { username } = req.params
     let result = {}, status = 200
     var error = null
     try {

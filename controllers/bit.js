@@ -72,8 +72,9 @@ controller.add = async (req, res) => {
 }
 
 controller.getByUser = async (req, res) => {
-    const { page } = req.body
-    const username = req.params.user
+    const { page } = req.query
+    if (!page) page = 1
+    const { username } = req.params
     let result = {}, status = 200
     var error = null
     try {

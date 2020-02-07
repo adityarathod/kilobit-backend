@@ -6,9 +6,9 @@ module.exports = (router) => {
     .post(controller.add)
     .get(util.validateToken, controller.getAll)
 
-  router.route('/user/info')
-    .post(controller.info)
+  router.route('/user/:username')
+    .get(controller.info)
 
-  router.route('/login')
+  router.route('/token')
     .post(controller.login)
 }
